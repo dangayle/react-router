@@ -952,6 +952,12 @@ export function matchRoutesImpl<
   basename: string,
   allowPartial: boolean,
 ): AgnosticRouteMatch<string, RouteObjectType>[] | null {
+  // If we have a custom matcher and this is not a partial match (fog-of-war),
+  // delegate to the custom matcher
+  if (customMatcher && !allowPartial) {
+    return customMatcher.matchRoutes(routes, locationArg, basename);
+  }
+
   let location =
     typeof locationArg === "string" ? parsePath(locationArg) : locationArg;
 
