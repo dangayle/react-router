@@ -51,3 +51,30 @@ The URL pathname to match against the pattern.
 A path match object if the pattern matches the pathname,
 or `null` if it does not match.
 
+## Custom Matchers
+
+React Router's route matching can be customized using the [`setRouteMatcher`](./setRouteMatcher) function. When a custom matcher is set, `matchPath` will delegate to the custom implementation instead of using the default React Router algorithm.
+
+```tsx
+import { setRouteMatcher, type RouteMatcher } from 'react-router';
+
+class CustomMatcher implements RouteMatcher {
+  readonly name = "CustomMatcher";
+  
+  matchPath(pattern, pathname) {
+    // Your custom matching logic
+  }
+  
+  matchRoutes(routes, location, basename) {
+    // Your custom route tree matching
+  }
+}
+
+setRouteMatcher(new CustomMatcher());
+```
+
+This allows you to:
+- Use alternative routing libraries (e.g., Hono routers, path-to-regexp)
+- Reimplement legacy React Router regex matchers
+- Implement custom matching algorithms for specific requirements
+

@@ -2,6 +2,48 @@ import type { MiddlewareEnabled } from "../types/future";
 import type { Equal, Expect } from "../types/utils";
 import type { Location, Path, To } from "./history";
 import { invariant, parsePath, warning } from "./history";
+import type { RouteMatcher } from "./matcher";
+
+/**
+ * Global custom route matcher. When set, all `matchRoutes` and `matchPath`
+ * calls will use this matcher instead of the default implementation.
+ */
+let customMatcher: RouteMatcher | null = null;
+
+/**
+ * Sets a custom route matcher to be used for all route matching operations.
+ *
+ * @example
+ * ```typescript
+ * import { setRouteMatcher, type RouteMatcher } from 'react-router';
+ *
+ * class CustomMatcher implements RouteMatcher {
+ *   readonly name = "CustomMatcher";
+ *   matchPath(pattern, pathname) { /* ... *\/ }
+ *   matchRoutes(routes, location, basename) { /* ... *\/ }
+ * }
+ *
+ * setRouteMatcher(new CustomMatcher());
+ * ```
+ *
+ * @param matcher The custom matcher to use, or `null` to reset to default
+ * @public
+ * @category Utils
+ */
+export function setRouteMatcher(matcher: RouteMatcher | null): void {
+  customMatcher = matcher;
+}
+
+/**
+ * Gets the currently active custom route matcher, if any.
+ *
+ * @returns The active custom matcher, or `null` if using default
+ * @public
+ * @category Utils
+ */
+export function getRouteMatcher(): RouteMatcher | null {
+  return customMatcher;
+}
 
 export type MaybePromise<T> = T | Promise<T>;
 
@@ -896,6 +938,9 @@ export function matchRoutes<
   locationArg: Partial<Location> | string,
   basename = "/",
 ): AgnosticRouteMatch<string, RouteObjectType>[] | null {
+  if (customMatcher) {
+    return customMatcher.matchRoutes(routes, locationArg, basename);
+  }
   return matchRoutesImpl(routes, locationArg, basename, false);
 }
 
@@ -981,7 +1026,7 @@ export function convertRouteMatchToUiMatch(
   };
 }
 
-interface RouteMeta<
+export interface RouteMeta<
   RouteObjectType extends AgnosticRouteObject = AgnosticRouteObject,
 > {
   relativePath: string;
@@ -990,7 +1035,7 @@ interface RouteMeta<
   route: RouteObjectType;
 }
 
-interface RouteBranch<
+export interface RouteBranch<
   RouteObjectType extends AgnosticRouteObject = AgnosticRouteObject,
 > {
   path: string;
@@ -998,7 +1043,7 @@ interface RouteBranch<
   routesMeta: RouteMeta<RouteObjectType>[];
 }
 
-function flattenRoutes<
+export function flattenRoutes<
   RouteObjectType extends AgnosticRouteObject = AgnosticRouteObject,
 >(
   routes: RouteObjectType[],
@@ -1151,7 +1196,7 @@ function explodeOptionalSegments(path: string): string[] {
   );
 }
 
-function rankRouteBranches(branches: RouteBranch[]): void {
+export function rankRouteBranches(branches: RouteBranch[]): void {
   branches.sort((a, b) =>
     a.score !== b.score
       ? b.score - a.score // Higher score first
@@ -1210,7 +1255,7 @@ function compareIndexes(a: number[], b: number[]): number {
       0;
 }
 
-function matchRouteBranch<
+export function matchRouteBranch<
   ParamKey extends string = string,
   RouteObjectType extends AgnosticRouteObject = AgnosticRouteObject,
 >(
@@ -1387,7 +1432,7 @@ export interface PathMatch<ParamKey extends string = string> {
   pattern: PathPattern;
 }
 
-type Mutable<T> = {
+export type Mutable<T> = {
   -readonly [P in keyof T]: T[P];
 };
 
@@ -1412,6 +1457,10 @@ export function matchPath<
   pattern: PathPattern<Path> | Path,
   pathname: string,
 ): PathMatch<ParamKey> | null {
+  if (customMatcher) {
+    return customMatcher.matchPath(pattern, pathname);
+  }
+
   if (typeof pattern === "string") {
     pattern = { path: pattern, caseSensitive: false, end: true };
   }
@@ -1458,7 +1507,7 @@ export function matchPath<
   };
 }
 
-type CompiledPathParam = { paramName: string; isOptional?: boolean };
+export type CompiledPathParam = { paramName: string; isOptional?: boolean };
 
 export function compilePath(
   path: string,

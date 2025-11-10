@@ -56,6 +56,27 @@ export type {
 } from "./lib/router/utils";
 export { createContext, RouterContextProvider } from "./lib/router/utils";
 
+// Pluggable matcher API
+export type { RouteMatcher } from "./lib/router/matcher";
+export {
+  DefaultReactRouterMatcher,
+  defaultMatcher,
+} from "./lib/router/default-matcher";
+export {
+  setRouteMatcher,
+  getRouteMatcher,
+  flattenRoutes,
+  rankRouteBranches,
+  matchRouteBranch,
+  compilePath,
+} from "./lib/router/utils";
+export type {
+  RouteBranch,
+  RouteMeta,
+  Mutable,
+  CompiledPathParam,
+} from "./lib/router/utils";
+
 export {
   Action as NavigationType,
   createPath,

@@ -69,3 +69,30 @@ Optional base path to strip from the location before matching. Defaults to `/`.
 
 An array of matched routes, or `null` if no matches were found.
 
+## Custom Matchers
+
+React Router's route matching can be customized using the [`setRouteMatcher`](./setRouteMatcher) function. When a custom matcher is set, `matchRoutes` will delegate to the custom implementation instead of using the default React Router algorithm.
+
+```tsx
+import { setRouteMatcher, type RouteMatcher } from 'react-router';
+
+class CustomMatcher implements RouteMatcher {
+  readonly name = "CustomMatcher";
+  
+  matchPath(pattern, pathname) {
+    // Your custom path matching logic
+  }
+  
+  matchRoutes(routes, location, basename) {
+    // Your custom route tree matching logic
+  }
+}
+
+setRouteMatcher(new CustomMatcher());
+```
+
+This allows you to:
+- Use alternative routing libraries (e.g., Hono routers, path-to-regexp)
+- Reimplement legacy React Router regex matchers for backwards compatibility
+- Implement custom matching algorithms for specific requirements
+
